@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GAS LAW SOLVER LAB — ห้องทดลองกฎของแก๊ส</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Particle canvas background -->
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- ═══ APP SHELL ═══ -->
+  <div id="app">
+
+    <!-- NAV -->
+    <nav id="topNav">
+      <div class="nav-inner">
+        <div class="nav-logo" onclick="showPage('home')">
+          <span class="logo-icon">⚗️</span>
+          <span class="logo-text">GAS LAW SOLVER LAB</span>
+        </div>
+        <div class="nav-links">
+          <button class="nav-btn" onclick="showPage('ideal')">Ideal Gas</button>
+          <button class="nav-btn" onclick="showPage('dalton')">Dalton</button>
+          <button class="nav-btn" onclick="showPage('graham')">Gas Race</button>
+          <button class="nav-btn" onclick="showPage('worksheet')">โจทย์</button>
+        </div>
+        <button class="hamburger" id="hamburger" onclick="toggleNav()">☰</button>
+      </div>
+      <div class="mobile-nav" id="mobileNav">
+        <button onclick="showPage('ideal');toggleNav()">⚡ Ideal Gas</button>
+        <button onclick="showPage('dalton');toggleNav()">🧪 Dalton</button>
+        <button onclick="showPage('graham');toggleNav()">🏎️ Gas Race</button>
+        <button onclick="showPage('worksheet');toggleNav()">📋 โจทย์</button>
+      </div>
+    </nav>
+
+    <!-- ═══ HOME ═══ -->
+    <div id="page-home" class="page active">
+      <div class="hero">
+        <div class="hero-content">
+          <div class="hero-badge">🧬 เคมี ม.5 — Gas Laws</div>
+          <h1 class="hero-title">GAS LAW<br><span class="hero-accent">SOLVER LAB</span></h1>
+          <p class="hero-sub">ปรับค่า ทดลอง ดูกราฟ และให้แอพช่วยแสดงวิธีทำโจทย์ทีละขั้น</p>
+          <p class="hero-desc">เครื่องมือช่วยทำโจทย์เคมีเรื่องแก๊ส สำหรับใบงาน GAS LAW MISSION</p>
+        </div>
+        <div class="hero-visual">
+          <canvas id="heroMolecules" width="300" height="300"></canvas>
+        </div>
+      </div>
+
+      <div class="menu-grid">
+        <div class="menu-card" onclick="showPage('ideal')">
+          <div class="card-icon">🔭</div>
+          <div class="card-num">PART 1</div>
+          <h3>Ideal Gas Solver</h3>
+          <p>ช่วยทำโจทย์ <strong>PV = nRT</strong><br>หา P, V, n, T หรือมวล</p>
+          <div class="card-tag">8 โจทย์จากใบงาน</div>
+        </div>
+        <div class="menu-card" onclick="showPage('dalton')">
+          <div class="card-icon">🧪</div>
+          <div class="card-num">PART 2</div>
+          <h3>Dalton Mixer Lab</h3>
+          <p>ช่วยทำโจทย์ <strong>P<sub>total</sub> = ΣP<sub>i</sub></strong><br>ความดันย่อยและเศษส่วนโมล</p>
+          <div class="card-tag">6 โจทย์จากใบงาน</div>
+        </div>
+        <div class="menu-card" onclick="showPage('graham')">
+          <div class="card-icon">🏎️</div>
+          <div class="card-num">PART 3</div>
+          <h3>Gas Race Simulator</h3>
+          <p>ช่วยทำโจทย์ <strong>r₁/r₂ = √(M₂/M₁)</strong><br>เปรียบเทียบอัตราการแพร่</p>
+          <div class="card-tag">9 โจทย์จากใบงาน</div>
+        </div>
+        <div class="menu-card" onclick="showPage('worksheet')">
+          <div class="card-icon">📋</div>
+          <div class="card-num">WORKSHEET</div>
+          <h3>Worksheet Mode</h3>
+          <p>เลือกข้อจากใบงานแล้วให้<br>แอพตั้งค่าเริ่มต้นให้อัตโนมัติ</p>
+          <div class="card-tag">23 โจทย์ครบ 3 PART</div>
+        </div>
+      </div>
+
+      <div class="formula-bar">
+        <div class="formula-pill"><span class="f-label">Ideal Gas</span><span class="f-eq">PV = nRT</span></div>
+        <div class="formula-pill"><span class="f-label">Dalton</span><span class="f-eq">P<sub>total</sub> = ΣP<sub>i</sub></span></div>
+        <div class="formula-pill"><span class="f-label">Graham</span><span class="f-eq">r₁/r₂ = √(M₂/M₁)</span></div>
+        <div class="formula-pill"><span class="f-label">R =</span><span class="f-eq">0.0821 L·atm/mol·K</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ IDEAL GAS SOLVER ═══ -->
+    <div id="page-ideal" class="page">
+      <div class="page-header">
+        <button class="back-btn" onclick="showPage('home')">← กลับ</button>
+        <h2>⚡ Ideal Gas Solver <span class="header-sub">PV = nRT</span></h2>
+      </div>
+
+      <div class="solver-layout">
+        <!-- LEFT: Controls -->
+        <div class="solver-left">
+          <div class="card">
+            <h3 class="card-title">🎯 เลือกสิ่งที่ต้องการหา</h3>
+            <div class="solve-for-grid">
+              <button class="solve-btn active" onclick="selectSolveFor('P','ideal')" id="sf-P">หา P (ความดัน)</button>
+              <button class="solve-btn" onclick="selectSolveFor('V','ideal')" id="sf-V">หา V (ปริมาตร)</button>
+              <button class="solve-btn" onclick="selectSolveFor('n','ideal')" id="sf-n">หา n (โมล)</button>
+              <button class="solve-btn" onclick="selectSolveFor('T','ideal')" id="sf-T">หา T (อุณหภูมิ)</button>
+              <button class="solve-btn" onclick="selectSolveFor('m','ideal')" id="sf-m">หามวล (g)</button>
+              <button class="solve-btn" onclick="selectSolveFor('M','ideal')" id="sf-M">หา M (มวลโมเลกุล)</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">📝 กรอกค่าที่ทราบ</h3>
+            <div class="input-grid">
+              <div class="input-group" id="ig-P">
+                <label>P — ความดัน</label>
+                <div class="input-with-unit">
+                  <input type="number" id="i-P" placeholder="เช่น 1.00" step="any" oninput="liveUpdate('ideal')" />
+                  <select id="u-P" onchange="liveUpdate('ideal')">
+                    <option value="atm">atm</option>
+                    <option value="mmHg">mmHg</option>
+                    <option value="kPa">kPa</option>
+                  </select>
+                </div>
+              </div>
+              <div class="input-group" id="ig-V">
+                <label>V — ปริมาตร</label>
+                <div class="input-with-unit">
+                  <input type="number" id="i-V" placeholder="เช่น 5.00" step="any" oninput="liveUpdate('ideal')" />
+                  <select id="u-V" onchange="liveUpdate('ideal')">
+                    <option value="L">L</option>
+                    <option value="mL">mL</option>
+                  </select>
+                </div>
+              </div>
+              <div class="input-group" id="ig-n">
+                <label>n — จำนวนโมล (mol)</label>
+                <input type="number" id="i-n" placeholder="เช่น 2.00" step="any" oninput="liveUpdate('ideal')" />
+              </div>
+              <div class="input-group" id="ig-T">
+                <label>T — อุณหภูมิ</label>
+                <div class="input-with-unit">
+                  <input type="number" id="i-T" placeholder="เช่น 27" step="any" oninput="liveUpdate('ideal')" />
+                  <select id="u-T" onchange="liveUpdate('ideal')">
+                    <option value="C">°C</option>
+                    <option value="K">K</option>
+                  </select>
+                </div>
+              </div>
+              <div class="input-group" id="ig-m">
+                <label>m — มวล (g) <span class="opt-label">(ถ้ามี)</span></label>
+                <input type="number" id="i-m" placeholder="เช่น 22.0" step="any" oninput="liveUpdate('ideal')" />
+              </div>
+              <div class="input-group" id="ig-Mol">
+                <label>M — มวลโมเลกุล (g/mol) <span class="opt-label">(ถ้ามี)</span></label>
+                <input type="number" id="i-Mol" placeholder="เช่น 44" step="any" oninput="liveUpdate('ideal')" />
+              </div>
+            </div>
+
+            <!-- Unit conversion helper -->
+            <div class="unit-helper">
+              <div class="unit-helper-title">🔄 ตัวช่วยแปลงหน่วย</div>
+              <div class="unit-pills">
+                <button class="unit-pill" onclick="convertUnit('CtoK')">°C → K</button>
+                <button class="unit-pill" onclick="convertUnit('KtoC')">K → °C</button>
+                <button class="unit-pill" onclick="convertUnit('mmHgtoAtm')">mmHg → atm</button>
+                <button class="unit-pill" onclick="convertUnit('mLtoL')">mL → L</button>
+              </div>
+              <div id="unit-result" class="unit-result"></div>
+            </div>
+
+            <div class="btn-row">
+              <button class="btn-calc" onclick="calcIdeal()">🧮 คำนวณ</button>
+              <button class="btn-reset" onclick="resetIdeal()">🔄 ล้างค่า</button>
+              <button class="btn-rand" onclick="randomIdeal()">🎲 สุ่มโจทย์</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Results + Animation -->
+        <div class="solver-right">
+          <!-- Animation -->
+          <div class="card anim-card">
+            <h3 class="card-title">🔬 จำลองอนุภาคแก๊ส</h3>
+            <canvas id="gasCanvas" width="300" height="200"></canvas>
+            <div id="gasStatus" class="gas-status"></div>
+            <div class="gauge-row">
+              <div class="gauge-wrap">
+                <div class="gauge-label">P</div>
+                <div class="gauge-bar"><div class="gauge-fill" id="g-P-fill" style="height:30%"></div></div>
+                <div class="gauge-val" id="g-P-val">—</div>
+              </div>
+              <div class="gauge-wrap">
+                <div class="gauge-label">T</div>
+                <div class="gauge-bar"><div class="gauge-fill temp" id="g-T-fill" style="height:30%"></div></div>
+                <div class="gauge-val" id="g-T-val">—</div>
+              </div>
+              <div class="gauge-wrap">
+                <div class="gauge-label">n</div>
+                <div class="gauge-bar"><div class="gauge-fill mol" id="g-n-fill" style="height:30%"></div></div>
+                <div class="gauge-val" id="g-n-val">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Solution -->
+          <div class="card" id="ideal-solution" style="display:none">
+            <h3 class="card-title">📐 วิธีทำทีละขั้น</h3>
+            <div id="ideal-steps" class="steps-container"></div>
+            <div id="ideal-answer" class="answer-box"></div>
+            <div id="ideal-warning" class="warning-box"></div>
+            <div class="btn-row">
+              <button class="btn-copy" onclick="copySolution('ideal')">📋 คัดลอกวิธีทำ</button>
+              <button class="btn-print" onclick="window.print()">🖨️ พิมพ์</button>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="card chart-card">
+            <h3 class="card-title">📊 กราฟกฎของแก๊ส</h3>
+            <div class="chart-tabs">
+              <button class="chart-tab active" onclick="switchChart('ideal','PV')">P vs V</button>
+              <button class="chart-tab" onclick="switchChart('ideal','VT')">V vs T</button>
+              <button class="chart-tab" onclick="switchChart('ideal','PT')">P vs T</button>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="idealChart"></canvas>
+            </div>
+            <div id="ideal-chart-desc" class="chart-desc"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ DALTON LAB ═══ -->
+    <div id="page-dalton" class="page">
+      <div class="page-header">
+        <button class="back-btn" onclick="showPage('home')">← กลับ</button>
+        <h2>🧪 Dalton Mixer Lab <span class="header-sub">P<sub>total</sub> = ΣP<sub>i</sub></span></h2>
+      </div>
+
+      <div class="solver-layout">
+        <div class="solver-left">
+          <div class="card">
+            <h3 class="card-title">🔀 เลือกโหมด</h3>
+            <div class="mode-tabs">
+              <button class="mode-tab active" onclick="switchDaltonMode('pressure')" id="dt-mode-pressure">โหมด A: กรอกความดันย่อย</button>
+              <button class="mode-tab" onclick="switchDaltonMode('mole')" id="dt-mode-mole">โหมด B: กรอกโมล + P<sub>total</sub></button>
+            </div>
+          </div>
+
+          <!-- Mode A: pressures -->
+          <div class="card" id="dalton-mode-pressure">
+            <h3 class="card-title">กรอกความดันย่อย (atm)</h3>
+            <div id="dalton-gas-list" class="dalton-gas-list">
+              <!-- rendered by JS -->
+            </div>
+            <button class="btn-add" onclick="addDaltonGas()">＋ เพิ่มแก๊ส</button>
+            <div class="btn-row" style="margin-top:12px">
+              <button class="btn-calc" onclick="calcDalton()">🧮 คำนวณ</button>
+              <button class="btn-reset" onclick="resetDalton()">🔄 ล้างค่า</button>
+            </div>
+          </div>
+
+          <!-- Mode B: moles -->
+          <div class="card" id="dalton-mode-mole" style="display:none">
+            <h3 class="card-title">กรอกจำนวนโมล + ความดันรวม</h3>
+            <div id="dalton-mol-list" class="dalton-gas-list">
+              <!-- rendered by JS -->
+            </div>
+            <button class="btn-add" onclick="addDaltonMol()">＋ เพิ่มแก๊ส</button>
+            <div class="input-group" style="margin-top:12px">
+              <label>P<sub>total</sub> รวม (atm)</label>
+              <input type="number" id="i-Ptotal" placeholder="เช่น 2.00" step="any" oninput="calcDaltonMol()" />
+            </div>
+            <div class="btn-row" style="margin-top:12px">
+              <button class="btn-calc" onclick="calcDaltonMol()">🧮 คำนวณ</button>
+              <button class="btn-reset" onclick="resetDalton()">🔄 ล้างค่า</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="solver-right">
+          <!-- Dalton animation -->
+          <div class="card anim-card">
+            <h3 class="card-title">🔬 จำลองแก๊สผสม</h3>
+            <canvas id="daltonCanvas" width="300" height="200"></canvas>
+            <div class="dalton-legend" id="daltonLegend"></div>
+          </div>
+
+          <!-- Result -->
+          <div class="card" id="dalton-solution" style="display:none">
+            <h3 class="card-title">📐 วิธีทำทีละขั้น</h3>
+            <div id="dalton-steps" class="steps-container"></div>
+            <div id="dalton-answer" class="answer-box"></div>
+            <div class="btn-row">
+              <button class="btn-copy" onclick="copySolution('dalton')">📋 คัดลอก</button>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="card chart-card">
+            <h3 class="card-title">📊 กราฟความดันย่อย</h3>
+            <div class="chart-tabs">
+              <button class="chart-tab active" onclick="switchChart('dalton','bar')">Bar</button>
+              <button class="chart-tab" onclick="switchChart('dalton','pie')">Pie</button>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="daltonChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ GRAHAM GAS RACE ═══ -->
+    <div id="page-graham" class="page">
+      <div class="page-header">
+        <button class="back-btn" onclick="showPage('home')">← กลับ</button>
+        <h2>🏎️ Gas Race Simulator <span class="header-sub">r₁/r₂ = √(M₂/M₁)</span></h2>
+      </div>
+
+      <div class="solver-layout">
+        <div class="solver-left">
+          <div class="card">
+            <h3 class="card-title">🔀 เลือกโหมด</h3>
+            <div class="mode-tabs">
+              <button class="mode-tab active" onclick="switchGrahamMode('race')" id="gr-mode-race">Race Mode</button>
+              <button class="mode-tab" onclick="switchGrahamMode('effusion')" id="gr-mode-eff">Effusion Mode</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">⚗️ เลือกแก๊สคู่แข่ง</h3>
+            <div class="gas-selector-row">
+              <div class="gas-picker">
+                <label>แก๊สที่ 1</label>
+                <select id="gas1-select" onchange="updateGasPicker(1)" class="gas-select">
+                  <option value="custom">— กรอกเอง —</option>
+                  <option value="2">H₂ (M=2)</option>
+                  <option value="4">He (M=4)</option>
+                  <option value="16">CH₄ (M=16)</option>
+                  <option value="17">NH₃ (M=17)</option>
+                  <option value="18">H₂O (M=18)</option>
+                  <option value="20">Ne (M=20)</option>
+                  <option value="28">N₂ (M=28)</option>
+                  <option value="32" selected>O₂ (M=32)</option>
+                  <option value="34">H₂S (M=34)</option>
+                  <option value="36.5">HCl (M=36.5)</option>
+                  <option value="40">Ar (M=40)</option>
+                  <option value="44">CO₂ (M=44)</option>
+                  <option value="64">SO₂ (M=64)</option>
+                  <option value="71">Cl₂ (M=71)</option>
+                </select>
+                <input type="number" id="gas1-M" placeholder="M (g/mol)" value="32" step="any" oninput="updateGraham()" />
+                <div class="gas-color-dot" id="gas1-dot" style="background:#4fc3f7"></div>
+              </div>
+              <div class="vs-badge">VS</div>
+              <div class="gas-picker">
+                <label>แก๊สที่ 2</label>
+                <select id="gas2-select" onchange="updateGasPicker(2)" class="gas-select">
+                  <option value="custom">— กรอกเอง —</option>
+                  <option value="2" selected>H₂ (M=2)</option>
+                  <option value="4">He (M=4)</option>
+                  <option value="16">CH₄ (M=16)</option>
+                  <option value="17">NH₃ (M=17)</option>
+                  <option value="18">H₂O (M=18)</option>
+                  <option value="20">Ne (M=20)</option>
+                  <option value="28">N₂ (M=28)</option>
+                  <option value="32">O₂ (M=32)</option>
+                  <option value="34">H₂S (M=34)</option>
+                  <option value="36.5">HCl (M=36.5)</option>
+                  <option value="40">Ar (M=40)</option>
+                  <option value="44">CO₂ (M=44)</option>
+                  <option value="64">SO₂ (M=64)</option>
+                  <option value="71">Cl₂ (M=71)</option>
+                </select>
+                <input type="number" id="gas2-M" placeholder="M (g/mol)" value="2" step="any" oninput="updateGraham()" />
+                <div class="gas-color-dot" id="gas2-dot" style="background:#a78bfa"></div>
+              </div>
+            </div>
+
+            <!-- Effusion extra inputs -->
+            <div id="effusion-inputs" style="display:none" class="effusion-panel">
+              <div class="input-group">
+                <label>ปริมาตร Gas1 ที่แพร่ (mL) ใน t นาที</label>
+                <input type="number" id="eff-vol1" placeholder="เช่น 300" step="any" oninput="calcEffusion()" />
+              </div>
+              <div class="input-group">
+                <label>เวลา t (นาที)</label>
+                <input type="number" id="eff-time" placeholder="เช่น 10" step="any" oninput="calcEffusion()" />
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <button class="btn-calc" onclick="calcGraham()">🧮 คำนวณ</button>
+              <button class="btn-reset" onclick="resetGraham()">🔄 ล้างค่า</button>
+              <button class="btn-rand" onclick="randomGraham()">🎲 สุ่ม</button>
+            </div>
+          </div>
+
+          <!-- Find unknown M -->
+          <div class="card">
+            <h3 class="card-title">🔍 หา M ของแก๊สปริศนา</h3>
+            <div class="input-group">
+              <label>อัตราส่วน r₁/r₂</label>
+              <input type="number" id="unknown-ratio" placeholder="เช่น 2" step="any" />
+            </div>
+            <div class="input-group">
+              <label>M ของแก๊สที่ทราบ (g/mol)</label>
+              <input type="number" id="unknown-M" placeholder="เช่น 32 (O₂)" step="any" />
+            </div>
+            <button class="btn-calc" onclick="findUnknownM()" style="margin-top:8px">🔎 หา M</button>
+            <div id="unknown-result" class="answer-box" style="margin-top:8px;display:none"></div>
+          </div>
+        </div>
+
+        <div class="solver-right">
+          <!-- Race Animation -->
+          <div class="card anim-card" id="race-anim-card">
+            <h3 class="card-title">🏁 สนามแข่งโมเลกุล</h3>
+            <canvas id="raceCanvas" width="400" height="180"></canvas>
+            <div id="race-status" class="race-status"></div>
+            <div class="race-controls">
+              <button class="btn-play" onclick="toggleRace()" id="race-play-btn">▶ เริ่มแข่ง</button>
+              <button class="btn-reset" onclick="resetRace()">↺ รีเซ็ต</button>
+            </div>
+          </div>
+
+          <!-- Effusion Animation -->
+          <div class="card anim-card" id="effusion-anim-card" style="display:none">
+            <h3 class="card-title">💨 จำลอง Effusion</h3>
+            <canvas id="effCanvas" width="400" height="180"></canvas>
+            <div class="effusion-sliders">
+              <label>เวลา: <span id="eff-t-display">0</span> นาที</label>
+              <input type="range" id="eff-slider" min="0" max="60" value="0" oninput="updateEffusion(this.value)" style="width:100%" />
+            </div>
+            <div id="effusion-result" class="answer-box" style="display:none"></div>
+          </div>
+
+          <!-- Solution -->
+          <div class="card" id="graham-solution" style="display:none">
+            <h3 class="card-title">📐 วิธีทำทีละขั้น</h3>
+            <div id="graham-steps" class="steps-container"></div>
+            <div id="graham-answer" class="answer-box"></div>
+            <div class="btn-row">
+              <button class="btn-copy" onclick="copySolution('graham')">📋 คัดลอก</button>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="card chart-card">
+            <h3 class="card-title">📊 กราฟเปรียบเทียบ</h3>
+            <div class="chart-tabs">
+              <button class="chart-tab active" onclick="switchChart('graham','mass')">มวลโมเลกุล</button>
+              <button class="chart-tab" onclick="switchChart('graham','rate')">อัตราการแพร่</button>
+              <button class="chart-tab" onclick="switchChart('graham','vol')">ปริมาตรตามเวลา</button>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="grahamChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ WORKSHEET MODE ═══ -->
+    <div id="page-worksheet" class="page">
+      <div class="page-header">
+        <button class="back-btn" onclick="showPage('home')">← กลับ</button>
+        <h2>📋 Worksheet Mode <span class="header-sub">GAS LAW MISSION</span></h2>
+      </div>
+
+      <div class="worksheet-layout">
+        <div class="ws-sidebar">
+          <div class="ws-part">
+            <div class="ws-part-title" style="background:#2E6DB4">PART 1 — Ideal Gas Explorer</div>
+            <div class="ws-problems" id="ws-part1"></div>
+          </div>
+          <div class="ws-part">
+            <div class="ws-part-title" style="background:#6A3D8F">PART 2 — Dalton Detective</div>
+            <div class="ws-problems" id="ws-part2"></div>
+          </div>
+          <div class="ws-part">
+            <div class="ws-part-title" style="background:#1A7A6E">PART 3 — Gas Race</div>
+            <div class="ws-problems" id="ws-part3"></div>
+          </div>
+        </div>
+
+        <div class="ws-main">
+          <div id="ws-problem-display" class="card ws-problem-card">
+            <div class="ws-placeholder">
+              <div class="ws-ph-icon">📖</div>
+              <p>เลือกข้อจากแผงด้านซ้าย</p>
+              <p style="color:#888;font-size:0.9em">แอพจะตั้งค่าเริ่มต้นให้อัตโนมัติ</p>
+            </div>
+          </div>
+
+          <!-- Hint system -->
+          <div class="card" id="hint-card" style="display:none">
+            <h3 class="card-title">💡 ระบบ Hint</h3>
+            <div class="hint-btns">
+              <button class="hint-btn" onclick="showHint(1)">Hint 1 — สูตรที่ใช้</button>
+              <button class="hint-btn" onclick="showHint(2)">Hint 2 — แปลงหน่วย</button>
+              <button class="hint-btn" onclick="showHint(3)">Hint 3 — จัดรูปสูตร</button>
+            </div>
+            <div id="hint-display" class="hint-display"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SUMMARY CARD ═══ -->
+    <div id="summaryModal" class="modal" style="display:none">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeSummary()">✕</button>
+        <div id="summary-card" class="summary-card">
+          <div class="sc-header">
+            <div class="sc-logo">⚗️ GAS LAW SOLVER LAB</div>
+            <div class="sc-subtitle">ห้องทดลองช่วยทำโจทย์กฎของแก๊ส</div>
+          </div>
+          <div class="sc-body">
+            <div class="sc-row"><span>ชื่อ-สกุล</span><strong id="sc-name">—</strong></div>
+            <div class="sc-row"><span>ชั้น</span><strong id="sc-class">—</strong></div>
+            <div class="sc-row"><span>เลขที่</span><strong id="sc-num">—</strong></div>
+            <div class="sc-row"><span>โจทย์</span><strong id="sc-prob">—</strong></div>
+            <div class="sc-row"><span>สูตร</span><strong id="sc-formula">—</strong></div>
+            <div class="sc-row"><span>คำตอบ</span><strong id="sc-ans">—</strong></div>
+            <div class="sc-row"><span>วันที่</span><strong id="sc-date">—</strong></div>
+          </div>
+          <div class="sc-footer">ใช้ GAS LAW SOLVER LAB ช่วยฝึกแก้โจทย์กฎของแก๊ส</div>
+        </div>
+        <div class="modal-form">
+          <input type="text" id="sc-in-name" placeholder="ชื่อ-สกุล" />
+          <input type="text" id="sc-in-class" placeholder="ชั้น" />
+          <input type="text" id="sc-in-num" placeholder="เลขที่" />
+          <button class="btn-calc" onclick="generateCard()">🎴 สร้างการ์ด</button>
+          <button class="btn-copy" onclick="captureCard()">📸 บันทึกภาพ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating summary btn -->
+    <button class="fab" onclick="openSummary()" title="สร้างการ์ดสรุป">🎴</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
